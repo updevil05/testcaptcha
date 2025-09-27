@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>AWS WAF CAPTCHA Test</title>
+  <!-- Integration URL -->
+<script type="text/javascript" src="https://04d1f10b5f39.ap-southeast-2.captcha-sdk.awswaf.com/04d1f10b5f39/jsapi.js" defer></script>
+</head>
+<body>
+  <h1>ทดสอบ AWS WAF CAPTCHA</h1>
+  <div id="captcha"></div>
+  <pre id="log"></pre>
+
+<script type="text/javascript" src="https://04d1f10b5f39.ap-southeast-2.captcha-sdk.awswaf.com/04d1f10b5f39/jsapi.js" defer></script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    AwsWafCaptcha.renderCaptcha(document.getElementById('captcha'), {
+      apiKey: 'SZ0cPz+UFojI795Q5TKss3nuSsSdC/Dd4SdBIUOTLde76jSKTpjxJY+YCPzyDRQQd3sPWZyYjkG9KTvMCE+cUINx6k1JYvv1pHKFpw49l4bKGTnS9Zd7kS0ejCiuGyMgDwWDhCHCeI2b943LwQs7VhYEnZ56cqRvqDxYfLicMj6w8NEHMvpE/xaQkVtrdt7yImAqLuE3vMAA7e6MiFkvKLLot40Fd2ZgR62k0Ocw6HJ0D4CaR8P723H8oQOYjgmQZQRAfRd+ircBpPSjBPeBTYBFog1SB0k7W7RV+c/Az1gaXGb1VOA+JuS6I4zAxjcn9aJeiTKbt+H6QV06FKechD8QwiGF/RZCidU+scBfDUeye21Db9zOMNYIqWHPejpRAndL+yG1B2EvLOYbv3B3MTIhthtF1WLIwuMZpvMgccxXt3JpNwvtVkFftcZ3JKBMAztb3Kx0zPIt++xyWVI4CwGb8gRrqC5BxBd1X0tWk7iJrXInteELcj2iNqKCqYerRaHVByanYd2l7tA/exZYkisWkxTzYpC5yPnMCTmdSlDHgHWepNtLV7eO0Y37z85VAOgcc+ozjrcHfQ0LfLCBOMp4mfCi05fHgSl+0ku+4l3S26YRqmEfhpTilBFxHWz/g7XEumwIzuZ2QT3qDUiN0XTyD00OF3NdDDXhWNC3vKg=_0_1',
+      onSuccess: (token) => {
+        console.log('✅ CAPTCHA OK:', token);
+        // token ถูกเซ็ตเป็น cookie aws-waf-token ให้อัตโนมัติแล้ว
+      },
+      onError: (e) => console.error('❌ CAPTCHA error:', e),
+      onLoad: () => console.log('CAPTCHA widget loaded')
+    });
+  });
+</script>
+
+
+</body>
+</html>

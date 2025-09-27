@@ -1,0 +1,13 @@
+node_modules/
+*.key
+*.crt
+*.csr
+*.zip
+*.exe
+ca.*
+server.*
+*.conf
+create-ca.js
+test.js
+http-server.js
+package*.json
