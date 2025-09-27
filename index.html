@@ -1,32 +1,217 @@
 <!doctype html>
-<html>
+<html lang="th">
 <head>
   <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AWS WAF CAPTCHA Test</title>
   <!-- Integration URL -->
-<script type="text/javascript" src="https://04d1f10b5f39.ap-southeast-2.captcha-sdk.awswaf.com/04d1f10b5f39/jsapi.js" defer></script>
+  <script type="text/javascript" src="https://04d1f10b5f39.ap-southeast-2.captcha-sdk.awswaf.com/04d1f10b5f39/jsapi.js" defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    #captcha {
+      margin: 20px 0;
+      min-height: 100px;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #fafafa;
+    }
+    #captcha.loaded {
+      border: none;
+      background: transparent;
+    }
+    #log {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 4px;
+      padding: 15px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
+      max-height: 300px;
+      overflow-y: auto;
+      margin-top: 20px;
+    }
+    .status {
+      padding: 10px;
+      border-radius: 4px;
+      margin: 10px 0;
+      font-weight: bold;
+    }
+    .status.loading {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
 </head>
 <body>
-  <h1>ทดสอบ AWS WAF CAPTCHA</h1>
-  <div id="captcha"></div>
-  <pre id="log"></pre>
+  <div class="container">
+    <h1>🛡️ ทดสอบ AWS WAF CAPTCHA</h1>
+    
+    <div id="status-loading" class="status loading">
+      ⏳ กำลังโหลด CAPTCHA...
+    </div>
+    <div id="status-success" class="status success hidden">
+      ✅ CAPTCHA ผ่านการตรวจสอบแล้ว!
+    </div>
+    <div id="status-error" class="status error hidden">
+      ❌ เกิดข้อผิดพลาดในการโหลด CAPTCHA
+    </div>
 
+    <div id="captcha">
+      <span style="color: #666;">กำลังโหลด CAPTCHA...</span>
+    </div>
 
+    <h3>📋 Log การทำงาน:</h3>
+    <pre id="log"></pre>
+  </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    AwsWafCaptcha.renderCaptcha(document.getElementById('captcha'), {
-      apiKey: 'P5UyRzlPztnOlym5vbrVz6tJtO3Zw+A8kOKU0ds5dIkMRpVTn8G4X2U6PhV38xmdpiWCXeU5w9ROEkvDypXJUyia/6lf/Tph7124nN/3rdZdFqN4aLa9xZG1tlFrd9BuCGhiQd9W5eMqK72jcsX7wktDucD+j+pW/WkQ2hZOzIGbd8+KHRmAyjklwNaWc9MWHkZbBTm2Q/O9HLMGARifaZlFZoz72tgvZmbcHLoeIc/G973engCDO5UszV7rS3Ov3sz5Y0tHudSDcabE4PCYVLHmbMiJHVoWwldW1nKWc71y1EWF66KkWw/xoko1NzqQLxAUCZg+kds9SBLZAR1C/8jM0L5kqwfJCNAX+iUphhVLKSy2eHgZOSKizhaklviXVgKWLRC8nsNp9AupWvDTN8CB/Bj0Dopt8NpbQZc/lXSpxHoPNbsQBAMJ3JA3vkjBJyy2f9DHAv6hjIMGAGnX+tHADYStXPPzh7fLNYw86FeXt15Ve7nduTnUpaEJa5vqZ7wMyV5QS6LiuG85+1fb5fWma0DoD8XwgGA43x1o+lBf/0kAbK8sIVmIQiK7M9QCVGuzSUUXoHcKrBbBXsf+KFgp3FJDH1mbQ7la1ZQO5fM33+6TQg3JkOku/x18NKf0XbSifr8TJZS4O8NWhuVwImzh8MieMf6Mw7pyHuCCiTw=_0_1',
-      onSuccess: (token) => {
-        console.log('✅ CAPTCHA OK:', token);
-        // token ถูกเซ็ตเป็น cookie aws-waf-token ให้อัตโนมัติแล้ว
-      },
-      onError: (e) => console.error('❌ CAPTCHA error:', e),
-      onLoad: () => console.log('CAPTCHA widget loaded')
+  // ฟังก์ชันสำหรับแสดง log
+  function addLog(message, type = 'info') {
+    const logElement = document.getElementById('log');
+    const timestamp = new Date().toLocaleTimeString('th-TH');
+    const logEntry = `[${timestamp}] ${message}\n`;
+    logElement.textContent += logEntry;
+    logElement.scrollTop = logElement.scrollHeight;
+    
+    // แสดงใน console ด้วย
+    if (type === 'error') {
+      console.error(message);
+    } else if (type === 'warn') {
+      console.warn(message);
+    } else {
+      console.log(message);
+    }
+  }
+
+  // ฟังก์ชันอัพเดทสถานะ
+  function updateStatus(status) {
+    const statuses = ['loading', 'success', 'error'];
+    statuses.forEach(s => {
+      const element = document.getElementById(`status-${s}`);
+      if (s === status) {
+        element.classList.remove('hidden');
+      } else {
+        element.classList.add('hidden');
+      }
     });
+  }
+
+  // เมื่อหน้าเว็บโหลดเสร็จ
+  document.addEventListener('DOMContentLoaded', () => {
+    addLog('🚀 เริ่มต้นการทำงาน AWS WAF CAPTCHA');
+    
+    // ตรวจสอบว่า AwsWafCaptcha พร้อมใช้งานหรือไม่
+    const checkSDK = () => {
+      if (typeof AwsWafCaptcha !== 'undefined') {
+        addLog('✅ SDK โหลดสำเร็จ');
+        initCaptcha();
+      } else {
+        addLog('⏳ รอ SDK โหลด...');
+        setTimeout(checkSDK, 100);
+      }
+    };
+
+    checkSDK();
+  });
+
+  function initCaptcha() {
+    try {
+      addLog('🔄 กำลังสร้าง CAPTCHA widget...');
+      
+      const captchaElement = document.getElementById('captcha');
+      captchaElement.innerHTML = ''; // ลบข้อความ loading
+      captchaElement.classList.add('loaded');
+
+      AwsWafCaptcha.renderCaptcha(captchaElement, {
+        apiKey: 'P5UyRzlPztnOlym5vbrVz6tJtO3Zw+A8kOKU0ds5dIkMRpVTn8G4X2U6PhV38xmdpiWCXeU5w9ROEkvDypXJUyia/6lf/Tph7124nN/3rdZdFqN4aLa9xZG1tlFrd9BuCGhiQd9W5eMqK72jcsX7wktDucD+j+pW/WkQ2hZOzIGbd8+KHRmAyjklwNaWc9MWHkZbBTm2Q/O9HLMGARifaZlFZoz72tgvZmbcHLoeIc/G973engCDO5UszV7rS3Ov3sz5Y0tHudSDcabE4PCYVLHmbMiJHVoWwldW1nKWc71y1EWF66KkWw/xoko1NzqQLxAUCZg+kds9SBLZAR1C/8jM0L5kqwfJCNAX+iUphhVLKSy2eHgZOSKizhaklviXVgKWLRC8nsNp9AupWvDTN8CB/Bj0Dopt8NpbQZc/lXSpxHoPNbsQBAMJ3JA3vkjBJyy2f9DHAv6hjIMGAGnX+tHADYStXPPzh7fLNYw86FeXt15Ve7nduTnUpaEJa5vqZ7wMyV5QS6LiuG85+1fb5fWma0DoD8XwgGA43x1o+lBf/0kAbK8sIVmIQiK7M9QCVGuzSUUXoHcKrBbBXsf+KFgp3FJDH1mbQ7la1ZQO5fM33+6TQg3JkOku/x18NKf0XbSifr8TJZS4O8NWhuVwImzh8MieMf6Mw7pyHuCCiTw=_0_1',
+        
+        onLoad: () => {
+          addLog('📦 CAPTCHA widget โหลดเสร็จแล้ว');
+          updateStatus('loading');
+        },
+        
+        onSuccess: (token) => {
+          addLog('🎉 CAPTCHA ผ่านการตรวจสอบสำเร็จ!');
+          addLog(`🔑 Token ที่ได้รับ: ${token.substring(0, 50)}...`);
+          addLog('🍪 Token ถูกเซ็ตเป็น cookie aws-waf-token แล้ว');
+          updateStatus('success');
+          
+          // ตรวจสอบ cookie ที่ถูกตั้งค่า
+          const cookies = document.cookie.split(';');
+          const wafCookie = cookies.find(cookie => cookie.trim().startsWith('aws-waf-token='));
+          if (wafCookie) {
+            addLog('✅ ตรวจสอบ cookie aws-waf-token: พบแล้ว');
+          } else {
+            addLog('⚠️ ไม่พบ cookie aws-waf-token', 'warn');
+          }
+        },
+        
+        onError: (error) => {
+          addLog(`💥 เกิดข้อผิดพลาด: ${error.message || error}`, 'error');
+          updateStatus('error');
+          
+          // แสดงรายละเอียดข้อผิดพลาด
+          if (error.code) {
+            addLog(`🔍 Error Code: ${error.code}`, 'error');
+          }
+          if (error.details) {
+            addLog(`📄 รายละเอียด: ${JSON.stringify(error.details, null, 2)}`, 'error');
+          }
+        },
+        
+        onExpired: () => {
+          addLog('⏰ CAPTCHA หมดอายุแล้ว กรุณาทำใหม่', 'warn');
+          updateStatus('loading');
+        }
+      });
+      
+    } catch (error) {
+      addLog(`💣 ข้อผิดพลาดในการสร้าง CAPTCHA: ${error.message}`, 'error');
+      updateStatus('error');
+    }
+  }
+
+  // จัดการ error ทั่วไป
+  window.addEventListener('error', (event) => {
+    addLog(`🚨 JavaScript Error: ${event.error.message}`, 'error');
   });
 </script>
-
 
 </body>
 </html>
